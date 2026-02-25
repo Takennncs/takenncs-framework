@@ -1,0 +1,49 @@
+@import url('https://use.fontawesome.com/releases/v5.6.3/css/all.css');
+
+::-webkit-scrollbar {
+	display:none;
+}
+
+.color-0 {
+	color: #ffffff;
+}
+
+.color-1 {
+	color: #ff4444;
+}
+
+.color-2 {
+	color: #99cc00;
+}
+
+.color-3 {
+	color: #ffbb33;
+}
+
+.color-4 {
+	color: #0099cc;
+}
+
+.color-5 {
+	color: #33b5e5;
+}
+
+.color-6 {
+	color: #353036;
+}
+
+.color-8 {
+	color: #cc0000;
+}
+
+.color-9 {
+	color: #cc0068;
+}
+
+/* takenncs-chat-devmode */
+
+.text-white { color: #ffffff; }
+.text-green { color: #22c55e; }  /* success */
+.text-red { color: #ef4444; }    /* error */
+.text-blue { color: #3b82f6; }   /* admin */
+.text-purple { color: #a855f7; } /* developer / devmode */

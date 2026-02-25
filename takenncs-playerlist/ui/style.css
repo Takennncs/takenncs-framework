@@ -1,0 +1,23 @@
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: transparent;
+            overflow: hidden; /* Prevents scroll on body, panel internal scroll handled */
+            height: 100vh;
+            width: 100vw;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        /* Custom scrollbar for main element (optional, for better fit) */
+        #mainElement::-webkit-scrollbar {
+            width: 6px;
+        }
+        #mainElement::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        #mainElement::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        #mainElement::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }

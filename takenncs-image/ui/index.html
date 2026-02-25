@@ -1,0 +1,28 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="scripts.js"></script>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        * {
+            background-color: transparent;
+        }
+        body {
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body class="hidden">
+    <div id="container" class="absolute z-10 cursor-move">
+        <div id="image" class="relative top-5 left-5 border-8 rounded border-gray-900 w-60 h-72 bg-white bg-opacity-10"></div>
+    </div>
+    
+    <button id="doScreenshot" type="button" class="absolute right-5 bottom-5 text-white bg-indigo-600 hover:bg-indigo-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center shadow-lg z-20">
+        Tee pilti
+    </button>
+</body>
+</html>

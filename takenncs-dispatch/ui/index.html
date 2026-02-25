@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>takenncs-dispatch</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <link href="style.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .notification-item { transition: all 0.2s ease; }
+        .notification-item:hover { transform: translateX(-4px); }
+        .call-badge { @apply px-2 py-1 rounded-md text-xs font-bold; }
+        .panic-border { border-left-color: #ef4444 !important; }
+        .police-border { border-left-color: #3b82f6 !important; }
+        .ems-border { border-left-color: #10b981 !important; }
+        .default-border { border-left-color: #8b5cf6 !important; }
+    </style>
+</head>
+
+<body class="absolute right-5 top-5 flex gap-3 items-start">
+    <div id="workerLogs" class="w-72 flex flex-col gap-2 max-h-[calc(100vh-2.5rem)] overflow-y-auto custom-scrollbar pr-1"></div>
+    <div id="content" class="w-96 flex flex-col gap-2 max-h-[calc(100vh-2.5rem)] overflow-y-auto custom-scrollbar pr-1"></div>
+
+    <script>
+        $(document).ready(function() {
+            let menuOpen = false;
+            window.Functions = {};
+
+            window.addEventListener('message', function(event) {
+                const eventData = event.data;
+
+                if (eventData.action === 'addCall') {
+                    Functions.CreateNotification(eventData.data);
+                } else if (eventData.action === 'showCalls') {
+                    $.post("https://takenncs-dispatch/loadCalls", JSON.stringify({})); 
+                    menuOpen = true;
+                } else if (eventData.action === 'loadCalls') {
+                    Functions.LoadCalls(eventData.data);
+                } else if (eventData.action === 'closeDispatch') {
+                    $.post("https://takenncs-dispatch/closeDispatch", JSON.stringify({})); 
+                    menuOpen = false;
+                    $('#content').empty();
+                } else if (eventData.action === 'addResponder') {
+                    Functions.AddResponderNotification(eventData.data);
+                }
+            });
+
+            window.AcceptCall = function(id) {
+                $.post("https://takenncs-dispatch/acceptCall", JSON.stringify({id: id}));
+                $(`#call-${id}`).addClass('opacity-50').find('.accept-btn').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i>');
+                
+                setTimeout(() => {
+                    $(`#call-${id}`).fadeOut(300, function() { $(this).remove(); });
+                }, 500);
+            };
+
+            Functions.CreateNotification = function(data) {
+                if (menuOpen) {
+                    $.post("https://takenncs-dispatch/loadCalls", JSON.stringify({}));
+                } else {
+                    let $notification = createCallElement(data, false);
+                    $('#content').prepend($notification.hide().fadeIn(500));
+
+                    setTimeout(() => {
+                        $notification.fadeOut(500, function() { $(this).remove(); });
+                    }, 8000);
+                }
+            };
+
+            Functions.LoadCalls = function(callsArray) {
+                $('#content').empty();
+
+                if (callsArray && callsArray.length > 0) {
+                    callsArray.sort((a, b) => b.id - a.id).forEach(v => {
+                        let $item = createCallElement(v, true);
+                        $('#content').append($item.hide().fadeIn(500));
+                    });
+                } else {
+                    $('#content').append(`
+                        <div class="bg-gray-900/60 backdrop-blur-sm border border-gray-700/50 rounded-xl p-6 text-center text-gray-400">
+                            <i class="fa-solid fa-circle-nodes text-3xl mb-2 text-gray-600"></i>
+                            <p class="text-sm">Pole ühtegi aktiivset väljakutset</p>
+                        </div>
+                    `);
+                }
+            };
+
+            Functions.AddResponderNotification = function(data) {
+                let $notification = $(`
+                    <div class="bg-gray-800/80 backdrop-blur-sm border-l-4 border-emerald-500 text-white text-sm rounded-lg p-3 shadow-lg flex items-center gap-2">
+                        <span class="bg-emerald-600 text-white px-2 py-0.5 rounded-md text-xs font-bold">#${data.id}</span>
+                        <span class="bg-indigo-700 text-white px-2 py-0.5 rounded-md text-xs font-bold">${data.call}</span>
+                        <span class="text-gray-300 text-xs truncate flex-1">${data.worker}</span>
+                        <i class="fa-solid fa-check-circle text-emerald-400 text-sm"></i>
+                    </div>
+                `).hide().fadeIn(500);
+
+                $('#workerLogs').prepend($notification);
+
+                setTimeout(() => {
+                    $notification.fadeOut(500, function() { $(this).remove(); });
+                }, 5000);
+            };
+
+            function createCallElement(data, isPersistent = false) {
+                const callId = data.id;
+                let borderClass = 'border-l-4 ';
+                
+                if (data.panic) borderClass += 'panic-border';
+                else if (data.call && data.call.includes('TULI')) borderClass += 'panic-border';
+                else if (data.call && data.call.includes('MEDIC')) borderClass += 'ems-border';
+                else if (data.call && data.call.includes('POLITSEI')) borderClass += 'police-border';
+                else borderClass += 'default-border';
+
+                return $(`
+                    <div id="call-${callId}" class="notification-item ${borderClass} bg-gray-800/80 backdrop-blur-sm text-white rounded-xl p-4 shadow-2xl relative group">
+                        <button onclick="AcceptCall(${callId})" class="accept-btn absolute right-3 top-3 text-gray-400 hover:text-emerald-400 transition-colors">
+                            <i class="fa-solid fa-location-dot fa-xl"></i>
+                        </button>
+                        
+                        <div class="flex items-center gap-2 pr-12">
+                            <span class="bg-green-600 text-white px-2 py-1 rounded-md text-xs font-bold">#${callId}</span>
+                            <span class="bg-indigo-700 text-white px-2 py-1 rounded-md text-xs font-bold">${data.call}</span>
+                        </div>
+                        
+                        <div class="mt-2 text-sm text-gray-200 font-medium">${data.description}</div>
+                        
+                        <div class="mt-3 flex items-center gap-2 text-gray-300">
+                            <i class="fa-solid fa-location-dot text-indigo-400 text-sm"></i>
+                            <span class="text-xs">${data.location}</span>
+                        </div>
+                        
+                        <div class="absolute bottom-2 right-3 text-xs text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i class="fa-regular fa-hand-pointer"></i> vajuta nuppu
+                        </div>
+                    </div>
+                `);
+            }
+
+            window.Functions = Functions;
+        });
+    </script>
+</body>
+</html>
